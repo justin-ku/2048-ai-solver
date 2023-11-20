@@ -1,21 +1,35 @@
-class Game:    
-    def play_marathon():
-        # Implement marathon mode logic
+class Board:
+    def __init__(self):
+        # Implement board initialization logic
         pass
 
-    def play_sprint():
-        # Implement sprint mode logic
+    def display(self):
+        # Implement board display logic
         pass
 
-    def play_ai():
-        # Implement AI mode logic
+    def is_game_over(self):
+        # Implement game-over detection logic
         pass
 
-    def play_multiplayer():
-        # Implement multiplayer mode logic
+    def make_move(self, direction):
+        # Implement move logic
         pass
 
-class Player:
+
+class Marathon:
+    def __init__(self, name):
+        # Implement player initialization logic
+        pass
+
+    def make_move(self):
+        # Implement player move input logic
+        pass
+
+    def scores(self):
+        # Store all existing highest scores as well as current score
+        pass
+
+class Sprint:
     def __init__(self, name):
         # Implement player initialization logic
         pass
