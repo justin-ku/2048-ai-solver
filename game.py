@@ -5,6 +5,7 @@ class Board:
     def __init__(self, board):
         """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
         self.board = board
+        self.score = 0
         self.addTile()
         self.addTile()
     
@@ -43,10 +44,11 @@ class Board:
             # use 'x' as placeholder for 0 (for now) for better readability
             output += '\t'.join([str(val) if val > 0 else 'x' for val in r])
             output += '\n'
-        return output
+        return output + '\n' + f'Score: {self.score}' + '\n'
     
     #=====================================Board movement==========================================    
     def moveLeft(self):
+        newScores = []
         for r in range(len(self.board)):
             for c in range(len(self.board)-1):
                 self.shiftLeft(r)
@@ -55,14 +57,16 @@ class Board:
                 if curVal == nextVal:
                     self.board[r][c] *= 2
                     self.board[r][c+1] = 0
+                    newScores.append(self.board[r][c])
             self.shiftLeft(r)
-        return self.board
+        return self.board, newScores
 
     def shiftLeft(self, r):
         curRow = self.board[r]
         self.board[r] = [val for val in curRow if val != 0] + [0]*curRow.count(0)         
     
     def moveRight(self):
+        newScores = []
         for r in range(len(self.board)):
             for c in range(len(self.board)-1, 0, -1):
                 self.shiftRight(r)
@@ -71,14 +75,16 @@ class Board:
                 if curVal == nextVal:
                     self.board[r][c] *= 2
                     self.board[r][c-1] = 0
+                    newScores.append(self.board[r][c])
             self.shiftRight(r)
-        return self.board
+        return self.board, newScores
 
     def shiftRight(self, r):
         curRow = self.board[r]
         self.board[r] = [0]*curRow.count(0) + [val for val in curRow if val != 0]        
 
     def moveUp(self):
+        newScores = []
         for c in range(len(self.board)):
             for r in range(len(self.board)-1):
                 self.shiftUp(c)
@@ -87,8 +93,9 @@ class Board:
                 if curVal == nextVal:
                     self.board[r][c] *= 2
                     self.board[r+1][c] = 0
+                    newScores.append(self.board[r][c])
             self.shiftUp(c)
-        return self.board
+        return self.board, newScores
 
     def shiftUp(self, c):
         curCol = [self.board[r][c] for r in range(len(self.board))]
@@ -97,6 +104,7 @@ class Board:
             self.board[r][c] = newCol[r]
     
     def moveDown(self):
+        newScores = []
         for c in range(len(self.board)):
             for r in range(len(self.board)-1, 0, -1):
                 self.shiftDown(c)
@@ -105,8 +113,9 @@ class Board:
                 if curVal == nextVal:
                     self.board[r][c] *= 2
                     self.board[r-1][c] = 0
+                    newScores.append(self.board[r][c])
             self.shiftDown(c)
-        return self.board
+        return self.board, newScores
 
     def shiftDown(self, c):
         curCol = [self.board[r][c] for r in range(len(self.board))]
@@ -118,15 +127,16 @@ class Board:
         originalState = copy.deepcopy(self.board)
 
         if direction == 'UP':      
-            self.moveUp()
+            _, newScore = self.moveUp()
         elif direction == 'DOWN':
-            self.moveDown()
+            _, newScore = self.moveDown()
         elif direction == 'LEFT':
-            self.moveLeft()
+            _, newScore = self.moveLeft()
         elif direction == 'RIGHT':
-            self.moveRight()
+            _, newScore = self.moveRight()
 
-        if self.board != originalState:                    
+        if self.board != originalState:
+            self.score += sum(newScore)
             self.addTile()
         return self.board
     
@@ -163,3 +173,6 @@ class Board:
             if boardCopy != newBoard:
                 available.append(move)
         return available
+    
+    def getScore(self):
+        return self.score

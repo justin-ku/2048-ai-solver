@@ -16,16 +16,16 @@ def move_(board, dir, n):
         print(board)
 
 def on_key_release(key):
-    if key == Key.esc or board.win() or board.gameOver():        
+    if key == Key.esc or board.win() or board.gameOver():
         exit()
-    elif key == Key.right:      
+    elif key == Key.right:
         move_(board, 'RIGHT', 1)
-    elif key == Key.left:        
+    elif key == Key.left:
         move_(board, 'LEFT', 1)
-    elif key == Key.up:        
+    elif key == Key.up:
         move_(board, 'UP', 1)
-    elif key == Key.down:        
-        move_(board, 'DOWN', 1)    
+    elif key == Key.down:
+        move_(board, 'DOWN', 1)
 
 with keyboard.Listener(on_release=on_key_release) as listener:
     listener.join()
