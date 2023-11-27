@@ -1,15 +1,15 @@
 import random
 import copy
 
-class Board:    
-    # initializes an empty board with two tiles (valued 2 or 4) placed on the board at random locations
+class Board:        
     def __init__(self, board):
-        self.board = board        
+        """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
+        self.board = board
         self.addTile()
         self.addTile()
-
-    # finds all the empty tiles on the board
+    
     def getEmptyTiles(self):
+        """Find all the empty tiles on the board"""
         emptyTiles = []
         for r in range(len(self.board)):
             for c in range(len(self.board)):
@@ -17,10 +17,10 @@ class Board:
                     emptyTiles.append((r, c))
         return emptyTiles
 
-    # add a new tile with a value of 2 or 4 at an empty tile
-    def addTile(self):       
+    def addTile(self):
+        """Add a new tile with a value of 2 or 4 at an empty tile"""
         emptyTiles = self.getEmptyTiles()
-        if not emptyTiles: 
+        if not emptyTiles:
             return
         pos = random.choice(emptyTiles)
         emptyRow, emptyCol = pos[0], pos[1]
@@ -30,9 +30,9 @@ class Board:
         else:
             val = 4
         self.board[emptyRow][emptyCol] = val
-
-    # display the board on the terminal
+    
     def __str__(self):
+        """Display the board on the terminal in a readable format"""
         if self.gameOver():
             return 'GAME OVER'
         if self.win():
@@ -44,7 +44,8 @@ class Board:
             output += '\t'.join([str(val) if val > 0 else 'x' for val in r])
             output += '\n'
         return output
-
+    
+    #=====================================Board movement==========================================    
     def moveLeft(self):
         for r in range(len(self.board)):
             for c in range(len(self.board)-1):
@@ -113,25 +114,25 @@ class Board:
         for r in range(len(self.board)):
             self.board[r][c] = newCol[r]
 
-    def move(self, direction): 
-        if not self.gameOver():
-            originalState = copy.deepcopy(self.board)
+    def performMove(self, direction):         
+        originalState = copy.deepcopy(self.board)
 
-            if direction == 'UP':      
-                self.moveUp()
-            elif direction == 'DOWN':
-                self.moveDown()
-            elif direction == 'LEFT':
-                self.moveLeft()
-            elif direction == 'RIGHT':
-                self.moveRight()
+        if direction == 'UP':      
+            self.moveUp()
+        elif direction == 'DOWN':
+            self.moveDown()
+        elif direction == 'LEFT':
+            self.moveLeft()
+        elif direction == 'RIGHT':
+            self.moveRight()
 
-            if self.board == originalState:
-                print('Dead end. Try another direction')
-            else:
-                self.addTile()
+        if self.board != originalState:                    
+            self.addTile()
+        return self.board
     
+    #=====================================End conditions==========================================    
     def win(self):
+        """Checks if current game state is a win"""
         for r in range(len(self.board)):
             for c in range(len(self.board)):
                 if self.board[r][c] == 2048:
@@ -139,6 +140,7 @@ class Board:
         return False
 
     def gameOver(self):
+        """Checks if current game state is game over"""
         boardCopy = copy.deepcopy(self.board)
         originalBoard = Board(boardCopy)
 
@@ -151,3 +153,13 @@ class Board:
            self.board == postMoveUp and self.board == postMoveDown:
             return True
         return False
+    
+    def availableMoves(self, board):
+        """Get available moves under the current game state"""
+        available = []
+        for move in ['LEFT', 'RIGHT', 'UP', 'DOWN']:
+            boardCopy = copy.deepcopy(board)
+            newBoard = boardCopy.performMove(move)
+            if boardCopy != newBoard:
+                available.append(move)
+        return available

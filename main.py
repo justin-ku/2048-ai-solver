@@ -12,7 +12,7 @@ print(board)
 def move_(board, dir, n):
     for i in range(n):
         print('' + dir + ' arrow key pressed...')
-        board.move(dir)
+        board.performMove(dir)
         print(board)
 
 def on_key_release(key):
