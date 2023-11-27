@@ -5,7 +5,7 @@ class Board:
     def __init__(self, board):
         """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
         self.board = board
-        self.score = 0
+        self.score = 0        
         self.addTile()
         self.addTile()
     
@@ -32,19 +32,33 @@ class Board:
             val = 4
         self.board[emptyRow][emptyCol] = val
     
+    def availableMoves(self):
+        """Get available moves under the current game state"""
+        available = []
+        for move in ['LEFT', 'RIGHT', 'UP', 'DOWN']:
+            boardCopy = copy.deepcopy(self)            
+            newBoard = boardCopy.performMove(move)
+            if self.board != newBoard:
+                available.append(move)
+        return available
+    
+    def getScore(self):
+        return self.score
+
     def __str__(self):
-        """Display the board on the terminal in a readable format"""
-        if self.gameOver():
-            return 'GAME OVER'
-        if self.win():
-            return 'YOU WON!'
+        """Display the board on the terminal in a readable format"""        
         output = ''
         for r in self.board:
             # note: join() only works for list of strings
             # use 'x' as placeholder for 0 (for now) for better readability
             output += '\t'.join([str(val) if val > 0 else 'x' for val in r])
             output += '\n'
-        return output + '\n' + f'Score: {self.score}' + '\n'
+        output += '\n' + f'Score: {self.score}' + '\n'
+        if self.gameOver():
+            output += 'GAME OVER'
+        if self.win():
+            output += 'YOU WON!'
+        return output
     
     #=====================================Board movement==========================================    
     def moveLeft(self):
@@ -123,20 +137,21 @@ class Board:
         for r in range(len(self.board)):
             self.board[r][c] = newCol[r]
 
-    def performMove(self, direction):         
+    def performMove(self, direction):
+        """Returns the new board state after performing the move"""       
         originalState = copy.deepcopy(self.board)
 
         if direction == 'UP':      
-            _, newScore = self.moveUp()
+            _, newScores = self.moveUp()
         elif direction == 'DOWN':
-            _, newScore = self.moveDown()
+            _, newScores = self.moveDown()
         elif direction == 'LEFT':
-            _, newScore = self.moveLeft()
+            _, newScores = self.moveLeft()
         elif direction == 'RIGHT':
-            _, newScore = self.moveRight()
+            _, newScores = self.moveRight()
 
         if self.board != originalState:
-            self.score += sum(newScore)
+            self.score += sum(newScores)
             self.addTile()
         return self.board
     
@@ -151,28 +166,4 @@ class Board:
 
     def gameOver(self):
         """Checks if current game state is game over"""
-        boardCopy = copy.deepcopy(self.board)
-        originalBoard = Board(boardCopy)
-
-        postMoveLeft = originalBoard.moveLeft()
-        postMoveRight = originalBoard.moveRight()
-        postMoveUp = originalBoard.moveUp()
-        postMoveDown = originalBoard.moveDown()
-
-        if self.board == postMoveLeft and self.board == postMoveRight and \
-           self.board == postMoveUp and self.board == postMoveDown:
-            return True
-        return False
-    
-    def availableMoves(self, board):
-        """Get available moves under the current game state"""
-        available = []
-        for move in ['LEFT', 'RIGHT', 'UP', 'DOWN']:
-            boardCopy = copy.deepcopy(board)
-            newBoard = boardCopy.performMove(move)
-            if boardCopy != newBoard:
-                available.append(move)
-        return available
-    
-    def getScore(self):
-        return self.score
+        return not self.availableMoves()

@@ -71,7 +71,10 @@ class Minimax:
         bFree = 0.01
         bMerge = 0.05
 
-        return (wSmooth * xSmooth + bSmooth) + (wMono * xMono + bMono) + (wFree * xFree + bFree) + (wMerge * xMerge + bMerge)
+        return (wSmooth * xSmooth  + bSmooth) + \
+               (wMono   * xMono    + bMono)   + \
+               (wFree   * xFree    + bFree)   + \
+               (wMerge  * xMerge   + bMerge)
 
     def monotonicity(self, board):
         # Calculate monotonicity score for columns
