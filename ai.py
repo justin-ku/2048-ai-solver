@@ -77,7 +77,7 @@ class Minimax:
                (wMerge  * xMerge   + bMerge)
 
     def monotonicity(self, board):
-        # Calculate monotonicity score for columns
+        # Calculate monotonicity score for rows
         rowScores = []
         monotonicRows = 0
         for row in board:

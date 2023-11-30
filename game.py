@@ -1,14 +1,28 @@
 import random
 import copy
 
-class Board:        
-    def __init__(self, board):
+class Board:    
+    highScore = 0
+    def __init__(self, board=False):
         """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
-        self.board = board
+        if not board:
+            self.board = [[0] * 4 for i in range(4)]
+            self.addTile()
+            self.addTile()
+        else:
+            self.board = board
         self.score = 0        
-        self.addTile()
-        self.addTile()
-    
+
+    def getBoard(self, row=-1, col=-1):
+        if row == -1 and col == -1:
+            return self.board
+        elif col == -1:
+            return self.board[row]
+        elif row == -1:
+            return [self.board[row][col] for row in range(len(self.board))]
+        else:
+            return self.board[row][col]
+
     def getEmptyTiles(self):
         """Find all the empty tiles on the board"""
         emptyTiles = []
@@ -35,7 +49,7 @@ class Board:
     def availableMoves(self):
         """Get available moves under the current game state"""
         available = []
-        for move in ['LEFT', 'RIGHT', 'UP', 'DOWN']:
+        for move in ['left', 'right', 'up', 'down']:
             boardCopy = copy.deepcopy(self)            
             newBoard = boardCopy.performMove(move)
             if self.board != newBoard:
@@ -44,6 +58,12 @@ class Board:
     
     def getScore(self):
         return self.score
+
+    def getHighScore(self):
+        if self.win() or self.gameOver():
+            if self.score > Board.highScore:
+                Board.highScore = self.score
+        return Board.highScore
 
     def __str__(self):
         """Display the board on the terminal in a readable format"""        
@@ -141,13 +161,13 @@ class Board:
         """Returns the new board state after performing the move"""       
         originalState = copy.deepcopy(self.board)
 
-        if direction == 'UP':      
+        if direction == 'up':      
             _, newScores = self.moveUp()
-        elif direction == 'DOWN':
+        elif direction == 'down':
             _, newScores = self.moveDown()
-        elif direction == 'LEFT':
+        elif direction == 'left':
             _, newScores = self.moveLeft()
-        elif direction == 'RIGHT':
+        elif direction == 'right':
             _, newScores = self.moveRight()
 
         if self.board != originalState:
@@ -167,3 +187,14 @@ class Board:
     def gameOver(self):
         """Checks if current game state is game over"""
         return not self.availableMoves()
+
+class aiBoard(Board):
+    highScore = 0
+    def __init__(self, board=False):
+        super().__init__(board)
+    
+    def getHighScore(self):
+        if self.win() or self.gameOver():
+            if self.score > Board.highScore:
+                aiBoard.highScore = self.score
+        return aiBoard.highScore
