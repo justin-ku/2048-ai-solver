@@ -1,4 +1,4 @@
-from game import Board
+from board import Board
 
 class Graphics:
     def __init__(self):

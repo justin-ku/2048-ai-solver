@@ -3,6 +3,7 @@ import copy
 
 class Board:    
     highScore = 0
+
     def __init__(self, board=False, addTiles=False):
         """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
         if not board:
@@ -12,7 +13,7 @@ class Board:
         if addTiles:
             self.addTile()
             self.addTile()
-        self.score = 0        
+        self.score = 0
 
     def getBoard(self, row=-1, col=-1):
         if row == -1 and col == -1:
@@ -33,11 +34,30 @@ class Board:
                     emptyTiles.append((r, c))
         return emptyTiles
 
+    def getScore(self):
+        return self.score
+
+    def getHighScore(self):
+        if self.winGame() or self.gameOver():
+            if self.score > Board.highScore:
+                Board.highScore = self.score
+        return Board.highScore
+
+    def getAvailableMoves(self):
+        """Get available moves under the current game state"""
+        available = []
+        for move in ['left', 'right', 'up', 'down']:
+            boardCopy = copy.deepcopy(self)            
+            newBoard = boardCopy.performMove(move)
+            if self.board != newBoard:
+                available.append(move)
+        return available
+
     def addTile(self, location=None, value=None):
         """Add a new tile with a value of 2 or 4 at an empty tile"""
         emptyTiles = self.getEmptyTiles()
         if not emptyTiles:
-            return
+            return None
         pos = random.choice(emptyTiles)
         emptyRow, emptyCol = pos[0], pos[1]
         
@@ -49,31 +69,12 @@ class Board:
                 self.board[emptyRow][emptyCol] = value
         else:
             # P(tile 2)=0.9 and P(tile 4)=0.1
-            val = -1
+            val = 0
             if random.random() < 0.9:
                 val = 2
             else:
                 val = 4            
-            self.board[emptyRow][emptyCol] = val
-    
-    def availableMoves(self):
-        """Get available moves under the current game state"""
-        available = []
-        for move in ['left', 'right', 'up', 'down']:
-            boardCopy = copy.deepcopy(self)            
-            newBoard = boardCopy.performMove(move)
-            if self.board != newBoard:
-                available.append(move)
-        return available
-    
-    def getScore(self):
-        return self.score
-
-    def getHighScore(self):
-        if self.win() or self.gameOver():
-            if self.score > Board.highScore:
-                Board.highScore = self.score
-        return Board.highScore
+            self.board[emptyRow][emptyCol] = val    
 
     def __str__(self):
         """Display the board on the terminal in a readable format"""        
@@ -89,8 +90,7 @@ class Board:
         if self.win():
             output += 'YOU WON!'
         return output
-    
-    #=====================================Board movement==========================================    
+         
     def moveLeft(self):
         newScores = []
         for r in range(len(self.board)):
@@ -184,9 +184,8 @@ class Board:
             self.score += sum(newScores)
             self.addTile()
         return self.board
-    
-    #=====================================End conditions==========================================    
-    def win(self):
+          
+    def winGame(self):
         """Checks if current game state is a win"""
         for r in range(len(self.board)):
             for c in range(len(self.board)):
@@ -196,15 +195,16 @@ class Board:
 
     def gameOver(self):
         """Checks if current game state is game over"""
-        return not self.availableMoves()
+        return not self.getAvailableMoves()
 
 class aiBoard(Board):
     highScore = 0
+
     def __init__(self, board=False, addTiles=False):
         super().__init__(board, addTiles)
     
     def getHighScore(self):
-        if self.win() or self.gameOver():
+        if self.winGame() or self.gameOver():
             if self.score > aiBoard.highScore:
                 aiBoard.highScore = self.score
         return aiBoard.highScore

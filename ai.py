@@ -1,4 +1,3 @@
-from game import Board
 import numpy as np
 import copy
 
@@ -18,13 +17,25 @@ class Minimax:
         self.board = board
         self.maxDepth = maxDepth
 
+    def getBestMove(self, depth=2):  
+        bestScore = -np.inf
+        bestMove = 'left'
+        moves = self.board.getAvailableMoves()
+        for move in moves:
+            boardCopy = copy.deepcopy(self.board)
+            boardCopy.performMove(move)
+            score, newMove = self.search(boardCopy, depth, move)
+            if score > bestScore:
+                bestScore = score
+                bestMove = newMove   
+        return bestMove
+
     def search(self, board, depth, alpha=-np.inf, beta=np.inf, maximizingPlayer=True):    
         """Implementation of minimax search with alpha-beta pruning"""
         if depth == 0 or board.gameOver():
-            return self.evaluate()
-                
+            return self.evaluate()                
         if maximizingPlayer:
-            moves = board.availableMoves()            
+            moves = board.getAvailableMoves()            
             maxEval = -np.inf
             bestMove = moves[0]
             for move in moves:
@@ -43,7 +54,7 @@ class Minimax:
             return maxEval            
             
         else:
-            moves = board.availableMoves()                    
+            moves = board.getAvailableMoves()                    
             minEval = np.inf
             for move in moves:
                 boardCopy = copy.deepcopy(board)
@@ -53,39 +64,30 @@ class Minimax:
                 beta = min(beta, eval)
                 if beta <= alpha:
                     break
-            return minEval
+            return minEval    
 
-    #=================================================================================================
-    #                                   HEURISTICS
-    #=================================================================================================
-
-    def evaluate(self):        
+    def evaluate(self):
         """Model evaluation score as linear combination"""
-        # xEdge = self.edgeBonus()
-        # xSmooth = self.smoothness()
-        # xMono = self.monotonicity()
-        # _, xFree = self.getFreeTiles()
-        # xMerge = self.getPotentialMerges()
+        xEdge = self.edgeBonus()
+        xMono = self.monotonicity()
+        _, xFree = self.getFreeTiles()
+        xMerge = self.getPotentialMerges()
 
         # tp2+: tune weights & biases using NN
-        # wEdge   = 0.00001
-        # wSmooth = 10
-        # wMono   = 0.00001
-        # wFree   = 0.00001
-        # wMerge  = 0.00001
+        wEdge   = 0.00001        
+        wMono   = 0.00001
+        wFree   = 0.00001
+        wMerge  = 0.00001
 
-        # bEdge = 0.00001
-        # bSmooth = 0.5
-        # bMono = 0.00001
-        # bFree = 0.00001
-        # bMerge = 0.00001        
+        bEdge = 0.00001        
+        bMono = 0.00001
+        bFree = 0.00001
+        bMerge = 0.00001        
 
-        # return (wEdge   * xEdge    + bEdge) + \
-        #        (wSmooth * xSmooth  + bSmooth) + \
-        #        (wMono   * xMono    + bMono)   + \
-        #        (wFree   * xFree    + bFree)   + \
-        #        (wMerge  * xMerge   + bMerge)
-        return self.smoothness1()
+        return (wEdge   * xEdge    + bEdge)   + \
+               (wMono   * xMono    + bMono)   + \
+               (wFree   * xFree    + bFree)   + \
+               (wMerge  * xMerge   + bMerge)
 
     def edgeBonus(self):
         maxVal = 0
@@ -165,113 +167,94 @@ class Minimax:
                 score *= 2
         return freeTiles, score
 
-    # s-heuristic idea adopted from: https://cs229.stanford.edu/proj2016/report/NieHouAn-AIPlays2048-report.pdf
-    # goal is a s-shaped board where high values are at top corners and tiles that can be merged are adjacent
-    # weight matrix has descending weights in s-shape to reflect this
-    # consistently achieves 64
-    WEIGHT_MATRIX = [[2**16, 2**15, 2**14, 2**13],
-                    [2**9, 2**10, 2**11, 2**12],
-                    [2**8, 2**7, 2**6, 2**5],
-                    [2**1, 2**2, 2**3, 2**4],]
-    
-    # heuristic of game state = dot product of game state (represented as 2D matrix) and weight matrix
-    def smoothness1(self):
-        eval = 0
-        board = self.board.getBoard()
-        for row in range(len(board)):
-            for col in range(len(board)):
-                eval += board[row][col] * self.WEIGHT_MATRIX[row][col]
-        return eval
-    
-    def smoothness2(self):
-        return self.smoothness1() * self.board.getScore()
-
-    #=================================================================================================
-    #                                   GENERATE MOVES
-    #=================================================================================================
-
-    def getAIMove(self):
-        boardCopy = copy.deepcopy(self.board)        
-        # bestScore, bestMove = self.search(boardCopy, self.maxDepth, alpha=-np.inf, beta=np.inf, maximizingPlayer=True)
-        bestScore, bestMove = self.search(boardCopy, self.maxDepth, True)
-        if bestScore == -np.inf:
-            return None
-        return bestMove
-
 #=================================================================================================
 # Expectimax
 # - https://www.baeldung.com/cs/expectimax-search
 #=================================================================================================
 
 class Expectimax(Minimax):
-    def __init__(self, board, maxDepth=8):
-        super().__init__(board, maxDepth)
+    def __init__(self, board, maxDepth=3):
+        super().__init__(board, min(maxDepth, 3))
 
-    def getAIMove(self):                        
-        bestScore, aiMove = self.search(self.board, self.maxDepth, True)
-        return aiMove
+    def getBestMove(self, depth=2): 
+        bestScore = -np.inf
+        bestMove = 'left'
+        moves = self.board.getAvailableMoves()
+        for move in moves:
+            boardCopy = copy.deepcopy(self.board)
+            boardCopy.performMove(move)
+            score, newMove = self.search(boardCopy, depth, move)
+            if score > bestScore:
+                bestScore = score
+                bestMove = move
+        return bestMove
     
-    # NOTE: make sure board is deep copy and not an alias of actual board
-    # def search(self, board, depth, maxDepth, alpha1=-np.inf, alpha2=-np.inf, alpha3=-np.inf, alpha4=-np.inf):
-    def search(self, board, depth, maximizingPlayer=True):
-        if depth == 0 or board.gameOver():
-            return self.evaluate(), None
-
-        if maximizingPlayer:
-            bestScore = -np.inf
-            bestMove = None
-            for move in board.availableMoves():
+    def search(self, board, depth, move=None):
+        if board.gameOver():
+            return -np.inf, move
+        elif depth < 0:
+            return self.evaluate(board.getBoard()), move
+        
+        maxEval = 0
+        if depth != int(depth):
+            maxEval = -np.inf
+            moves = board.getAvailableMoves()
+            for move in moves:
                 boardCopy = copy.deepcopy(board)
-                boardCopy.performMove(move)
-                score = self.search(boardCopy, depth - 1, False)[0]
-                if score > bestScore:
-                    bestScore = score
-                    bestMove = move
-            if depth == self.maxDepth:
-                return bestScore, bestMove
-            return bestScore, None
+                eval = self.search(boardCopy, depth-0.5, move)[0]
+                maxEval = max(maxEval, eval)
+        elif depth == int(depth):
+            maxEval = 0
+            emptyTiles = board.getEmptyTiles()            
+            for addTileLoc in emptyTiles:                
+                board.addTile(addTileLoc, 2)
+                # maxEval += 1/len(emptyTiles) * self.search(board, depth-0.5, move)[0]
+                maxEval += 1/len(emptyTiles) * 0.9 * self.search(board, depth-0.5, move)[0]
+                board.addTile(addTileLoc, 4)
+                maxEval += 1/len(emptyTiles) * 0.1 * self.search(board, depth-0.5, move)[0]
+                board.addTile(addTileLoc, 0)
+        return (maxEval, move)
+    
+    def evaluate(self, board):
+        wSnake = 10
+        wFree = 0.01
+        xSnake = self.snakeHeuristic(board)
+        _, xFree = self.getFreeTiles(board)
+        return wSnake*xSnake + wFree*xFree
 
-        else:
-            emptyTiles = board.getEmptyTiles()
-            totalScore = 0
-            totalMoves = 0
-            for tile in emptyTiles:
-                for value in [2, 4]:  # Assume new tile can be 2 or 4
-                    boardCopy = copy.deepcopy(board)
-                    (row, col) = tile
-                    boardCopy.addTile((row, col), value)
-                    if value == 2:
-                        score = 0.9*self.search(boardCopy, depth - 1, True)[0]
-                    else:
-                        score = 0.1*self.search(boardCopy, depth - 1, True)[0]
-                    totalScore += score
-                    totalMoves += 1
-
-            averageScore = totalScore / totalMoves if totalMoves > 0 else 0
-            return averageScore, None
-
-    def evaluate(self):
-        return self.smoothness1()
+    # positions of free tiles might impact evaluation
+    def getFreeTiles(self, board):
+        score = 0
+        freeTiles = []
+        for r in range(len(board)):
+            for c in range(len(board)):
+                if board[r][c] == 0:
+                    freeTiles.append((r, c)) 
+                    score += 2
+                    if r > 1 and c > 1:
+                        score += 2
+        return freeTiles, len(freeTiles)
 
     # s-heuristic idea adopted from: https://cs229.stanford.edu/proj2016/report/NieHouAn-AIPlays2048-report.pdf
     # goal is a s-shaped board where high values are at top corners and tiles that can be merged are adjacent
-    # weight matrix has descending weights in s-shape to reflect this
-    # consistently achieves 64
-    WEIGHT_MATRIX = [[2**16, 2**15, 2**14, 2**13],
-                    [2**9, 2**10, 2**11, 2**12],
-                    [2**8, 2**7, 2**6, 2**5],
-                    [2**1, 2**2, 2**3, 2**4]]
+    WEIGHT_MATRIX_2 = [[2**16, 2**15, 2**14, 2**13],
+                       [2**9,  2**10, 2**11, 2**12],
+                       [2**8,  2**7,  2**6,  2**5],
+                       [2**1,  2**2,  2**3,  2**4]]
+    
+    WEIGHT_MATRIX_4 = [[4**15, 4**14, 4**13, 4**12],
+                       [4**8,  4**9,  4**10, 4**11],
+                       [4**7,  4**6,  4**5,  4**4],
+                       [4**0,  4**1,  4**2,  4**3]]
     
     # heuristic of game state = dot product of game state (represented as 2D matrix) and weight matrix
-    def smoothness1(self):
+    def snakeHeuristic(self, board):
         eval = 0
-        board = self.board.getBoard()
         for row in range(len(board)):
             for col in range(len(board)):
-                eval += board[row][col] * self.WEIGHT_MATRIX[row][col]
+                eval += board[row][col] * self.WEIGHT_MATRIX_4[row][col]
         return eval
     
-    def smoothness2(self):
-        return self.smoothness1() * self.board.getScore()
-
+    def snakeHeuristic2(self, board):
+        return board.getScore() * self.snakeHeuristic(board)
     

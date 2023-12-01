@@ -1,5 +1,5 @@
 from graphics import Graphics
-from game import Board, aiBoard
+from board import Board, aiBoard
 from ai import Minimax, Expectimax
 
 from cmu_graphics import *
@@ -13,7 +13,7 @@ def onAppStart(app):
     # board object
     app.classicBoard = Board(False, True)
     app.aiBoard = aiBoard(False, True)   
-    app.expectimaxDepth = 3
+    app.expectimaxDepth = 2
     # app.minimax = Minimax(app.aiBoard, 2)
     app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
 
@@ -105,7 +105,7 @@ def onAppStart(app):
     app.restartRectColor = None
     app.restartLabelX = app.restartRectX + app.restartRectWidth//2
     app.restartLabelY = app.restartRectY + app.restartRectHeight//2
-    app.restartLabelSize = app.classicLabelSize*0.5
+    app.restartLabelSize = app.classicLabelSize*0.5    
 
     # instructions
     app.instructionsLabelX1 = app.restartRectX
@@ -140,7 +140,7 @@ def redrawAll(app):
         # drawInstructions(app)
         if app.mode == 'ai':
             drawStartButton(app)
-            drawStatsButton(app)
+            drawStatsButton(app)                
 
 def drawHomeScreen(app):
     # title    
@@ -305,7 +305,7 @@ def onMouseMove(app, mouseX, mouseY):
 
     if onRestartButton(app, mouseX, mouseY):
         app.restartRectColor = rgb(220, 220, 220) # light gray
-    else:
+    else:                
         app.restartRectColor = None
 
     if onStartButton(app, mouseX, mouseY):
@@ -360,31 +360,23 @@ def onMousePress(app, mouseX, mouseY):
     elif onClassicMode(app, mouseX, mouseY):
         app.mode = 'classic'
     elif onAIMode(app, mouseX, mouseY):
-        app.mode = 'ai'
-        app.board = app.aiBoard
+        app.mode = 'ai'        
     elif onRestartButton(app, mouseX, mouseY):
         if app.mode == 'classic':
             app.classicBoard = Board(False, True)
-            app.board = app.classicBoard
         elif app.mode == 'ai':
             app.aiBoard = aiBoard(False, True)
-            app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
-            app.board = app.aiBoard
+            app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)            
     if onStartButton(app, mouseX, mouseY):
         app.startAI = True
-    else:
-        app.startAI = False
 
 def onStep(app):
-    app.stepsPerSecond = 2
-    
-    if app.startAI:
-        aiMove = app.expectimax.getAIMove()
-        if aiMove:
-            app.aiBoard.performMove(aiMove)
-        else:            
-            app.startAI = False
-            print('game over')
+    app.stepsPerSecond = 5
+    if app.startAI and not app.aiBoard.gameOver():
+        aiMove = app.expectimax.getBestMove()
+        app.aiBoard.performMove(aiMove)        
+    else:
+        app.startAI = False        
 
 def main():
     runApp()
