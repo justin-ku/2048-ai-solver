@@ -3,14 +3,15 @@ import copy
 
 class Board:    
     highScore = 0
-    def __init__(self, board=False):
+    def __init__(self, board=False, addTiles=False):
         """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
         if not board:
-            self.board = [[0] * 4 for i in range(4)]
-            self.addTile()
-            self.addTile()
+            self.board = [[0] * 4 for i in range(4)]            
         else:
             self.board = board
+        if addTiles:
+            self.addTile()
+            self.addTile()
         self.score = 0        
 
     def getBoard(self, row=-1, col=-1):
@@ -32,19 +33,28 @@ class Board:
                     emptyTiles.append((r, c))
         return emptyTiles
 
-    def addTile(self):
+    def addTile(self, location=None, value=None):
         """Add a new tile with a value of 2 or 4 at an empty tile"""
         emptyTiles = self.getEmptyTiles()
         if not emptyTiles:
             return
         pos = random.choice(emptyTiles)
         emptyRow, emptyCol = pos[0], pos[1]
-        # P(tile 2)=0.9 and P(tile 4)=0.1
-        if random.random() < 0.9:
-            val = 2
+        
+        if value:
+            if location:
+                (row, col) = location
+                self.board[row][col] = value
+            else:
+                self.board[emptyRow][emptyCol] = value
         else:
-            val = 4
-        self.board[emptyRow][emptyCol] = val
+            # P(tile 2)=0.9 and P(tile 4)=0.1
+            val = -1
+            if random.random() < 0.9:
+                val = 2
+            else:
+                val = 4            
+            self.board[emptyRow][emptyCol] = val
     
     def availableMoves(self):
         """Get available moves under the current game state"""
@@ -190,11 +200,11 @@ class Board:
 
 class aiBoard(Board):
     highScore = 0
-    def __init__(self, board=False):
-        super().__init__(board)
+    def __init__(self, board=False, addTiles=False):
+        super().__init__(board, addTiles)
     
     def getHighScore(self):
         if self.win() or self.gameOver():
-            if self.score > Board.highScore:
+            if self.score > aiBoard.highScore:
                 aiBoard.highScore = self.score
         return aiBoard.highScore

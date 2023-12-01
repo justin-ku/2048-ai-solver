@@ -1,5 +1,6 @@
 from graphics import Graphics
 from game import Board, aiBoard
+from ai import Minimax, Expectimax
 
 from cmu_graphics import *
 
@@ -10,9 +11,14 @@ from cmu_graphics import *
 
 def onAppStart(app):
     # board object
-    app.classicBoard = Board()
-    app.aiBoard = aiBoard()
-    app.board = app.classicBoard
+    app.classicBoard = Board(False, True)
+    app.aiBoard = aiBoard(False, True)   
+    app.expectimaxDepth = 3
+    # app.minimax = Minimax(app.aiBoard, 2)
+    app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
+
+    app.startAI = False
+
     # screen
     app.width = 1000
     app.height = 800
@@ -109,6 +115,16 @@ def onAppStart(app):
     app.instructionsLabelY2 = app.instructionsLabelY1*1.1
     app.instructionsLabelSize2 = app.instructionsLabelSize1 * 0.8
 
+    # start button
+    app.startRectWidth = app.restartRectWidth
+    app.startRectHeight = app.restartRectHeight
+    app.startRectX = app.restartRectX
+    app.startRectY = app.boardTop
+    app.startRectColor = None
+    app.startLabelX = app.restartLabelX
+    app.startLabelY = app.startRectY + app.startRectHeight//2
+    app.startLabelSize = app.restartLabelSize    
+
 #=================================================================================================
 #                                   VIEW
 #=================================================================================================
@@ -116,12 +132,15 @@ def onAppStart(app):
 def redrawAll(app):
     if app.mode == 'home':
         drawHomeScreen(app)
-    elif app.mode == 'classic' or app.mode == 'ai':
+    else: # (app.mode == 'classic' or app.mode == 'ai')
         drawBoard(app)        
         drawScores(app)
         drawHomeButton(app)
         drawRestartButton(app)
-        # drawInstructions(app)    
+        # drawInstructions(app)
+        if app.mode == 'ai':
+            drawStartButton(app)
+            drawStatsButton(app)
 
 def drawHomeScreen(app):
     # title    
@@ -134,8 +153,12 @@ def drawHomeScreen(app):
     drawLabel('AI SOLVER', app.aiLabelX, app.aiLabelY, size=app.aiLabelSize, bold=True)   
 
 def drawBoard(app):
-    for row in range(len(app.board.getBoard())):
-        for col in range(len(app.board.getBoard(0))):
+    if app.mode == 'classic':
+        board = app.classicBoard
+    elif app.mode == 'ai':
+        board = app.aiBoard
+    for row in range(len(board.getBoard())):
+        for col in range(len(board.getBoard(0))):
             drawCell(app, row, col)
     drawBoardBorder(app)
 
@@ -146,13 +169,17 @@ def drawBoardBorder(app):
            borderWidth=app.cellBorderWidth*2)
 
 def drawCell(app, row, col):
+    if app.mode == 'classic':
+        board = app.classicBoard
+    elif app.mode == 'ai':
+        board = app.aiBoard
     # outline
     cellLeft, cellTop = getCellLeftTop(app, row, col)
     cellWidth, cellHeight = getCellSize(app)
     # values
     labelX = cellLeft + cellWidth//2
     labelY = cellTop + cellHeight//2
-    value = app.board.getBoard(row, col)
+    value = board.getBoard(row, col)
     valueString = f'{value}' if value else ''
     labelColor = 'black' if value < 8 else 'white'
     # draw
@@ -205,10 +232,19 @@ def drawScores(app):
 
     # TODO: make sizes relative (build off each other, so don't need to change all)
     drawLabel('SCORE', scoreLabelX1, scoreLabelY1, bold=True, size=scoreHeight*0.25)
-    drawLabel(f'{app.board.getScore()}', scoreLabelX2, scoreLabelY2, fill='white', bold=True, size=scoreHeight*0.45)
+    if app.mode == 'classic':
+        score = app.classicBoard.getScore()
+    elif app.mode == 'ai':
+        score = app.aiBoard.getScore()
+    drawLabel(f'{score}', scoreLabelX2, scoreLabelY2, fill='white', bold=True, size=scoreHeight*0.45)
     
+    if app.mode == 'classic':
+        board = app.classicBoard
+    elif app.mode == 'ai':
+        board = app.aiBoard
+
     drawLabel('BEST', bestLabelX1, bestLabelY1, bold=True, size=scoreHeight*0.25)
-    drawLabel(f'{app.board.getHighScore()}', bestLabelX2, bestLabelY2, fill='white', bold=True, size=bestHeight*0.4)
+    drawLabel(f'{board.getHighScore()}', bestLabelX2, bestLabelY2, fill='white', bold=True, size=bestHeight*0.4)
 
 def drawHomeButton(app):
     drawRect(app.homeRectX, app.homeRectY, app.homeRectWidth, app.homeRectHeight, fill=app.homeRectColor, border='black')
@@ -218,6 +254,11 @@ def drawRestartButton(app):
     drawRect(app.restartRectX, app.restartRectY, app.restartRectWidth, app.restartRectHeight, 
              fill=app.restartRectColor, border='black')
     drawLabel('RESTART', app.restartLabelX, app.restartLabelY, size=app.restartLabelSize, bold=True)
+
+def drawStatsButton(app):
+    pass
+    # drawRect()
+    # drawLabel('STATS')
 
 # work in progress
 def drawInstructions(app):
@@ -229,12 +270,17 @@ def drawInstructions(app):
         instructions = 'AI solves 2048'
     drawLabel(instructions, app.instructionsLabelX2, app.instructionsLabelY2, size=app.instructionsLabelSize2, align='right')
 
+def drawStartButton(app):
+    drawRect(app.startRectX, app.startRectY, app.startRectWidth, app.startRectHeight, 
+             fill=app.startRectColor, border='black')
+    drawLabel('START', app.startLabelX, app.startLabelY, size=app.startLabelSize, bold=True)
+
 #=================================================================================================
 #                                   CONTROLLER
 #=================================================================================================
 
 def onKeyPress(app, key):    
-    app.board.performMove(key)
+    app.classicBoard.performMove(key)
 
 # TODO: combine onASDFMode into one function and include input values for buttons in parameter
 # OR find more efficient/cleaner way to organize button press
@@ -261,6 +307,11 @@ def onMouseMove(app, mouseX, mouseY):
         app.restartRectColor = rgb(220, 220, 220) # light gray
     else:
         app.restartRectColor = None
+
+    if onStartButton(app, mouseX, mouseY):
+        app.startRectColor = rgb(220, 220, 220) # light gray
+    else:
+        app.startRectColor = None
 
 def onClassicMode(app, mX, mY):
     classicRectX1 = app.classicRectX + app.classicRectWidth
@@ -294,6 +345,14 @@ def onRestartButton(app, mX, mY):
         return True
     return False
 
+def onStartButton(app, mX, mY):
+    startRectX1 = app.startRectX + app.startRectWidth
+    startRectY1 = app.startRectY + app.startRectHeight
+    if app.startRectX <= mX <= startRectX1 and \
+       app.startRectY <= mY <= startRectY1:
+        return True
+    return False
+
 def onMousePress(app, mouseX, mouseY):
     if onHomeButton(app, mouseX, mouseY):
         app.mode = 'home'
@@ -305,11 +364,27 @@ def onMousePress(app, mouseX, mouseY):
         app.board = app.aiBoard
     elif onRestartButton(app, mouseX, mouseY):
         if app.mode == 'classic':
-            app.classicBoard = Board()
+            app.classicBoard = Board(False, True)
             app.board = app.classicBoard
         elif app.mode == 'ai':
-            app.aiBoard = aiBoard()
+            app.aiBoard = aiBoard(False, True)
+            app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
             app.board = app.aiBoard
+    if onStartButton(app, mouseX, mouseY):
+        app.startAI = True
+    else:
+        app.startAI = False
+
+def onStep(app):
+    app.stepsPerSecond = 2
+    
+    if app.startAI:
+        aiMove = app.expectimax.getAIMove()
+        if aiMove:
+            app.aiBoard.performMove(aiMove)
+        else:            
+            app.startAI = False
+            print('game over')
 
 def main():
     runApp()
