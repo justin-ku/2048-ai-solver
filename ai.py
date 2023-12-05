@@ -170,11 +170,14 @@ class Minimax:
 # - https://www.baeldung.com/cs/expectimax-search
 #=================================================================================================
 
-class Expectimax(Minimax):
+# class Expectimax(Minimax):
+class Expectimax():
     def __init__(self, board, maxDepth=3):
-        super().__init__(board, min(maxDepth, 3))
+        # super().__init__(board, min(maxDepth, 3))
+        self.board = board
+        self.maxDepth = maxDepth
 
-    def getBestMove(self, depth=2): 
+    def getBestMove(self, depth=2):
         bestScore = -np.inf
         bestMove = 'left'
         moves = self.board.getAvailableMoves()
@@ -184,7 +187,7 @@ class Expectimax(Minimax):
             score, newMove = self.search(boardCopy, depth, move)
             if score > bestScore:
                 bestScore = score
-                bestMove = move
+                bestMove = move        
         return bestMove
     
     # expectimax search
@@ -202,24 +205,24 @@ class Expectimax(Minimax):
                 boardCopy = copy.deepcopy(board)
                 eval = self.search(boardCopy, depth-0.5, move)[0]
                 maxEval = max(maxEval, eval)
-        elif depth == int(depth):
+        elif depth == int(depth):            
             maxEval = 0
             emptyTiles = board.getEmptyTiles()            
-            for addTileLoc in emptyTiles:                
+            for addTileLoc in emptyTiles:             
                 board.addTile(addTileLoc, 2)
-                # maxEval += 1/len(emptyTiles) * self.search(board, depth-0.5, move)[0]
-                maxEval += 1/len(emptyTiles) * 0.9 * self.search(board, depth-0.5, move)[0]
-                board.addTile(addTileLoc, 4)
-                maxEval += 1/len(emptyTiles) * 0.1 * self.search(board, depth-0.5, move)[0]
+                maxEval += 1/len(emptyTiles) * self.search(board, depth-0.5, move)[0]
+                # maxEval += 1/len(emptyTiles) * 0.9 * self.search(board, depth-0.5, move)[0]
+                # board.addTile(addTileLoc, 4)
+                # maxEval += 1/len(emptyTiles) * 0.1 * self.search(board, depth-0.5, move)[0]
                 board.addTile(addTileLoc, 0)
         return (maxEval, move)
     
     def evaluate(self, board):
-        wSnake = 10
-        wFree = 0.01
+        wSnake = 0.65
+        wMerge = 4.65
         xSnake = self.snakeHeuristic(board)
-        _, xFree = self.getFreeTiles(board)
-        return wSnake*xSnake + wFree*xFree
+        xMerge = self.getPotentialMerges(board)
+        return wSnake*xSnake + wMerge*xMerge
 
     # positions of free tiles might impact evaluation
     def getFreeTiles(self, board):
@@ -236,8 +239,8 @@ class Expectimax(Minimax):
 
     # s-heuristic idea adopted from: https://cs229.stanford.edu/proj2016/report/NieHouAn-AIPlays2048-report.pdf
     # goal is a s-shaped board where high values are at top corners and tiles that can be merged are adjacent
-    WEIGHT_MATRIX_2 = [[2**16, 2**15, 2**14, 2**13],
-                       [2**9,  2**10, 2**11, 2**12],
+    WEIGHT_MATRIX_2 = [[2**25, 2**21, 2**18, 2**15],
+                       [2**9,  2**10, 2**11, 2**13],
                        [2**8,  2**7,  2**6,  2**5],
                        [2**1,  2**2,  2**3,  2**4]]
     
@@ -251,8 +254,20 @@ class Expectimax(Minimax):
         eval = 0
         for row in range(len(board)):
             for col in range(len(board)):
-                eval += board[row][col] * self.WEIGHT_MATRIX_4[row][col]
+                eval += board[row][col] * self.WEIGHT_MATRIX_2[row][col]
         return eval
     
-    def snakeHeuristic2(self, board):
-        return board.getScore() * self.snakeHeuristic(board)
+    def getPotentialMerges(self, board):
+        horizCnt = 0
+        for r in range(len(board)):
+            for c in range(len(board)-1):
+                if board[r][c] == board[r][c+1]:
+                    horizCnt *= 2        
+        vertCnt = 0
+        for c in range(len(board)):
+            col = [board[r][c] for r in range(len(board))]
+            for r in range(len(col)-1):
+                if board[r][c] == board[r+1][c]:
+                    vertCnt += 1
+        return horizCnt + vertCnt
+        return horizCnt

@@ -215,8 +215,8 @@ class aiBoard(Board):
     def __init__(self, board=False, addTiles=False):
         super().__init__(board, addTiles)
     
-    # def getHighScore(self):
-    #     if self.winGame() or self.gameOver():
-    #         if self.score > aiBoard.highScore:
-    #             aiBoard.highScore = self.score
-    #     return aiBoard.highScore
+    def getHighScore(self):
+        if self.winGame() or self.gameOver():
+            if self.score > aiBoard.highScore:
+                aiBoard.highScore = self.score
+        return aiBoard.highScore

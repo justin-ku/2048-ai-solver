@@ -15,7 +15,7 @@ def onAppStart(app):
     app.mtpBoard1 = mtpBoard1(False, True)
     app.mtpBoard2 = mtpBoard2(False, True)
     
-    # ai agents    
+    # ai agents
     app.minimax = Minimax(app.aiBoard, 2)
     app.expectimaxDepth = 2
     app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
@@ -191,7 +191,7 @@ def drawBoard(app):
     if app.mode == 'classic':
         board = app.classicBoard
     elif app.mode == 'ai':
-        board = app.aiBoard    
+        board = app.aiBoard 
     # draw board outline
     for row in range(len(board.getBoard())):
         for col in range(len(board.getBoard(0))):
@@ -226,13 +226,13 @@ def drawBoardBorder(app, mtpBoard=None):
                 borderWidth=app.cellBorderWidth*2)
 
 def drawCell(app, row, col, mtpBoard=None):
-    board = None    
+    board = None
     if app.mode == 'classic':
         board = app.classicBoard
     elif app.mode == 'ai':
         board = app.aiBoard
     elif app.mode == 'multiplayer':
-        board = mtpBoard  
+        board = mtpBoard
     value = board.getBoard(row, col)
     # outline
     cellLeft, cellTop = getCellLeftTop(app, row, col, mtpBoard)
@@ -421,6 +421,7 @@ def drawStartButton(app):
 #                                   CONTROLLER
 #=================================================================================================
 
+# merging logic
 def onKeyPress(app, key):
     player1Init = app.mtpBoard1.getScore()
     player2Init = app.mtpBoard2.getScore()
@@ -540,6 +541,8 @@ def onStep(app):
                 app.endLabel = 'GAME OVER'
             elif app.aiBoard.winGame():
                 app.endLabel = 'WOOHOO!'
+            else:
+                app.endLabel = ''
 
 def onClassicMode(app, mX, mY):
     classicRectX1 = app.classicRectX + app.classicRectWidth
