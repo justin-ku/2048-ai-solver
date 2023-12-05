@@ -30,8 +30,8 @@ class Minimax:
                 bestMove = newMove   
         return bestMove
 
-    def search(self, board, depth, alpha=-np.inf, beta=np.inf, maximizingPlayer=True):    
-        """Implementation of minimax search with alpha-beta pruning"""
+    # minimax search
+    def search(self, board, depth, alpha=-np.inf, beta=np.inf, maximizingPlayer=True):        
         if depth == 0 or board.gameOver():
             return self.evaluate()                
         if maximizingPlayer:
@@ -66,8 +66,7 @@ class Minimax:
                     break
             return minEval    
 
-    def evaluate(self):
-        """Model evaluation score as linear combination"""
+    def evaluate(self):        
         xEdge = self.edgeBonus()
         xMono = self.monotonicity()
         _, xFree = self.getFreeTiles()
@@ -99,11 +98,11 @@ class Minimax:
                     maxVal = board[row][col]
                     maxCoord = (row, col)
         if maxCoord == (0, 0):
-            return 100    
+            return 100
         return -100
 
-    def monotonicity(self):
-        """Check if strictly decreasing from top to down and left to right"""
+    # check if strictly decreasing from top to down and left to right
+    def monotonicity(self):        
         # Calculate monotonicity score for rows
         rowScores = []
         monotonicRows = 0
@@ -144,8 +143,7 @@ class Minimax:
         for r in range(len(self.board.getBoard())):
             for c in range(len(self.board.getBoard())-1):
                 if self.board.getBoard(r, c) == self.board.getBoard(r, c+1):
-                    horizCnt += 1
-        
+                    horizCnt += 1        
         vertCnt = 0
         for c in range(len(self.board.getBoard())):
             col = [self.board.getBoard(r, c) for r in range(len(self.board.getBoard()))]
@@ -189,6 +187,7 @@ class Expectimax(Minimax):
                 bestMove = move
         return bestMove
     
+    # expectimax search
     def search(self, board, depth, move=None):
         if board.gameOver():
             return -np.inf, move
@@ -257,4 +256,3 @@ class Expectimax(Minimax):
     
     def snakeHeuristic2(self, board):
         return board.getScore() * self.snakeHeuristic(board)
-    

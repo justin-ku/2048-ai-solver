@@ -4,10 +4,9 @@ import copy
 class Board:    
     highScore = 0
 
-    def __init__(self, board=False, addTiles=False):
-        """Initialize an empty board with two tiles (valued 2 or 4) placed on the board at random locations"""
+    def __init__(self, board=False, addTiles=False):        
         if not board:
-            self.board = [[0] * 4 for i in range(4)]            
+            self.board = [[0] * 4 for i in range(4)]     
         else:
             self.board = board
         if addTiles:
@@ -25,8 +24,7 @@ class Board:
         else:
             return self.board[row][col]
 
-    def getEmptyTiles(self):
-        """Find all the empty tiles on the board"""
+    def getEmptyTiles(self):        
         emptyTiles = []
         for r in range(len(self.board)):
             for c in range(len(self.board)):
@@ -44,17 +42,15 @@ class Board:
         return Board.highScore
 
     def getAvailableMoves(self):
-        """Get available moves under the current game state"""
         available = []
         for move in ['left', 'right', 'up', 'down']:
-            boardCopy = copy.deepcopy(self)            
+            boardCopy = copy.deepcopy(self)   
             newBoard = boardCopy.performMove(move)
             if self.board != newBoard:
                 available.append(move)
         return available
 
     def addTile(self, location=None, value=None):
-        """Add a new tile with a value of 2 or 4 at an empty tile"""
         emptyTiles = self.getEmptyTiles()
         if not emptyTiles:
             return None
@@ -67,21 +63,20 @@ class Board:
                 self.board[row][col] = value
             else:
                 self.board[emptyRow][emptyCol] = value
-        else:
-            # P(tile 2)=0.9 and P(tile 4)=0.1
+        else: # P(tile 2)=0.9 and P(tile 4)=0.1         
             val = 0
             if random.random() < 0.9:
                 val = 2
             else:
-                val = 4            
-            self.board[emptyRow][emptyCol] = val    
+                val = 4
+            self.board[emptyRow][emptyCol] = val
 
+    # print the board on the terminal for efficient testing
     def __str__(self):
-        """Display the board on the terminal in a readable format"""        
         output = ''
         for r in self.board:
             # note: join() only works for list of strings
-            # use 'x' as placeholder for 0 (for now) for better readability
+            # use 'x' as placeholder for 0 for better readability
             output += '\t'.join([str(val) if val > 0 else 'x' for val in r])
             output += '\n'
         output += '\n' + f'Score: {self.score}' + '\n'
@@ -90,7 +85,7 @@ class Board:
         if self.win():
             output += 'YOU WON!'
         return output
-         
+    
     def moveLeft(self):
         newScores = []
         for r in range(len(self.board)):
@@ -167,8 +162,7 @@ class Board:
         for r in range(len(self.board)):
             self.board[r][c] = newCol[r]
 
-    def performMove(self, direction):
-        """Returns the new board state after performing the move"""       
+    def performMove(self, direction):             
         originalState = copy.deepcopy(self.board)
 
         if direction == 'up':      
@@ -184,18 +178,36 @@ class Board:
             self.score += sum(newScores)
             self.addTile()
         return self.board
-          
-    def winGame(self):
-        """Checks if current game state is a win"""
+
+    def winGame(self):        
         for r in range(len(self.board)):
             for c in range(len(self.board)):
                 if self.board[r][c] == 2048:
                     return True
         return False
 
-    def gameOver(self):
-        """Checks if current game state is game over"""
+    def gameOver(self):        
         return not self.getAvailableMoves()
+
+class mtpBoard1(Board):
+    highScore = 0
+    def __init__(self, board=False, addTiles=False):
+        super().__init__(board, addTiles)
+    
+    def getHighScore(self):        
+        if self.score > mtpBoard1.highScore:
+            mtpBoard1.highScore = self.score
+        return mtpBoard1.highScore
+
+class mtpBoard2(Board):
+    highScore = 0
+    def __init__(self, board=False, addTiles=False):
+        super().__init__(board, addTiles)
+    
+    def getHighScore(self):        
+        if self.score > mtpBoard2.highScore:
+            mtpBoard2.highScore = self.score
+        return mtpBoard2.highScore
 
 class aiBoard(Board):
     highScore = 0
@@ -203,8 +215,8 @@ class aiBoard(Board):
     def __init__(self, board=False, addTiles=False):
         super().__init__(board, addTiles)
     
-    def getHighScore(self):
-        if self.winGame() or self.gameOver():
-            if self.score > aiBoard.highScore:
-                aiBoard.highScore = self.score
-        return aiBoard.highScore
+    # def getHighScore(self):
+    #     if self.winGame() or self.gameOver():
+    #         if self.score > aiBoard.highScore:
+    #             aiBoard.highScore = self.score
+    #     return aiBoard.highScore
