@@ -1,4 +1,3 @@
-from graphics import Graphics
 from board import Board, mtpBoard1, mtpBoard2, aiBoard
 from ai import AISolver
 from cmu_graphics import *
