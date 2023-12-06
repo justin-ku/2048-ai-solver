@@ -1,6 +1,6 @@
 from graphics import Graphics
 from board import Board, mtpBoard1, mtpBoard2, aiBoard
-from ai import Minimax, Expectimax
+from ai import AISolver
 from cmu_graphics import *
 import copy
 
@@ -14,12 +14,8 @@ def onAppStart(app):
     app.aiBoard = aiBoard(False, True)   
     app.mtpBoard1 = mtpBoard1(False, True)
     app.mtpBoard2 = mtpBoard2(False, True)
-    
-    # ai agents
-    app.minimax = Minimax(app.aiBoard, 2)
-    app.expectimaxDepth = 2
-    app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
-
+        
+    app.AISolver = AISolver(app.aiBoard)
     app.startAI = False
 
     # screen & presets
@@ -244,11 +240,14 @@ def drawCell(app, row, col, mtpBoard=None):
     labelX = cellLeft + cellWidth//2
     labelY = cellTop + cellHeight//2
     labelSize = app.boardWidth//8
-    if app.mode == 'multiplayer':
+    if app.mode == 'classic' or app.mode == 'multiplayer':
         if value > 64:
             labelSize *= 0.8
         elif value > 512:
             labelSize *= 0.6
+    elif app.mode == 'ai':
+        if value > 512:
+            labelSize *= 0.8 
     valueString = f'{value}' if value else ''
     labelColor = 'black' if value < 8 else 'white'
     drawLabel(valueString, labelX, labelY, font='arial', size=labelSize, bold=True, fill=labelColor)
@@ -495,7 +494,7 @@ def onMousePress(app, mouseX, mouseY):
                 app.classicBoard = Board(False, True)
             elif app.mode == 'ai':
                 app.aiBoard = aiBoard(False, True)
-                app.expectimax = Expectimax(app.aiBoard, app.expectimaxDepth)
+                app.AISolver = AISolver(app.aiBoard)           
         elif onStartButton(app, mouseX, mouseY):
             app.startAI = True
     elif app.mode == 'multiplayer':
@@ -530,8 +529,12 @@ def onStep(app):
         else:
             app.endLabel = ''
     elif app.mode == 'ai':
-        if app.startAI and not (app.aiBoard.gameOver() or app.aiBoard.winGame()):
-            aiMove = app.expectimax.getBestMove()
+        # if app.startAI and not (app.aiBoard.gameOver() or app.aiBoard.winGame()):
+        if app.startAI:
+            aiMove = app.AISolver.getNextMove(app.aiBoard)
+            if not aiMove:
+                app.startAI = False
+            # aiMove, _ = app.AISolver.minimax(app.aiBoard)
             app.aiBoard.performMove(aiMove)
             app.endLabel = ''
         else:

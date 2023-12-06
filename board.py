@@ -53,7 +53,7 @@ class Board:
     def addTile(self, location=None, value=None):
         emptyTiles = self.getEmptyTiles()
         if not emptyTiles:
-            return None
+            return []
         pos = random.choice(emptyTiles)
         emptyRow, emptyCol = pos[0], pos[1]
         
