@@ -141,7 +141,7 @@ class Board:
         newCol = [val for val in curCol if val != 0] + [0]*curCol.count(0)
         for r in range(len(self.board)):
             self.board[r][c] = newCol[r]
-    
+
     def moveDown(self):
         newScores = []
         for c in range(len(self.board)):

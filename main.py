@@ -26,7 +26,7 @@ def onAppStart(app):
     app.width = 1000
     app.height = 800    
     app.modes = ['home', 'classic', 'multiplayer', 'ai']
-    app.mode = 'home'    
+    app.mode = 'home'
     app.colors = {0: rgb(204, 192, 179),
                   2: rgb(238, 228, 218),
                   4: rgb(237, 224, 200),
@@ -236,7 +236,7 @@ def drawCell(app, row, col, mtpBoard=None):
     value = board.getBoard(row, col)
     # outline
     cellLeft, cellTop = getCellLeftTop(app, row, col, mtpBoard)
-    cellWidth, cellHeight = getCellSize(app, mtpBoard)        
+    cellWidth, cellHeight = getCellSize(app, mtpBoard)      
     drawRect(cellLeft, cellTop, cellWidth, cellHeight,
              fill=app.colors[value], border='black',
              borderWidth=app.cellBorderWidth)
@@ -271,7 +271,6 @@ def getCellSize(app, mtpBoard=None):
         cellHeight = app.mtpBoardHeight / app.mtpRows
     return (cellWidth, cellHeight)
 
-# tp2+: in the original 2048 game, size of score window changed as score updates
 def drawScores(app):
     # outline
     cellWidth, cellHeight = getCellSize(app)
@@ -421,7 +420,6 @@ def drawStartButton(app):
 #                                   CONTROLLER
 #=================================================================================================
 
-# merging logic
 def onKeyPress(app, key):
     player1Init = app.mtpBoard1.getScore()
     player2Init = app.mtpBoard2.getScore()
@@ -501,8 +499,9 @@ def onMousePress(app, mouseX, mouseY):
         elif onStartButton(app, mouseX, mouseY):
             app.startAI = True
     elif app.mode == 'multiplayer':
-        app.mtpBoard1 = mtpBoard1(False, True)
-        app.mtpBoard2 = mtpBoard2(False, True)
+        if onRestartButton(app, mouseX, mouseY):
+            app.mtpBoard1 = mtpBoard1(False, True)
+            app.mtpBoard2 = mtpBoard2(False, True)
 
 def onStep(app):
     app.stepsPerSecond = 100

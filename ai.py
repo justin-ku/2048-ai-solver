@@ -102,14 +102,14 @@ class Minimax:
         return -100
 
     # check if strictly decreasing from top to down and left to right
-    def monotonicity(self):        
+    def monotonicity(self): 
         # Calculate monotonicity score for rows
         rowScores = []
         monotonicRows = 0
         for row in self.board.getBoard():
             rowScore = self.rowMonotonicity(row)
-            rowScores.append(rowScore)            
-            if all(row[i] >= row[i+1] for i in range(len(row) - 1)):
+            rowScores.append(rowScore)        
+            if all(row[i] >= row[i+1] for i in range(len(row)-1)):
                 monotonicRows += 1
         
         # Calculate monotonicity score for columns
@@ -205,7 +205,7 @@ class Expectimax():
                 boardCopy = copy.deepcopy(board)
                 eval = self.search(boardCopy, depth-0.5, move)[0]
                 maxEval = max(maxEval, eval)
-        elif depth == int(depth):            
+        elif depth == int(depth):   
             maxEval = 0
             emptyTiles = board.getEmptyTiles()            
             for addTileLoc in emptyTiles:             
@@ -231,7 +231,7 @@ class Expectimax():
         for r in range(len(board)):
             for c in range(len(board)):
                 if board[r][c] == 0:
-                    freeTiles.append((r, c)) 
+                    freeTiles.append((r, c))
                     score += 2
                     if r > 1 and c > 1:
                         score += 2
@@ -257,6 +257,7 @@ class Expectimax():
                 eval += board[row][col] * self.WEIGHT_MATRIX_2[row][col]
         return eval
     
+    # allowing the board to have more tiles that are potential merges reduces uncertainty and increases value
     def getPotentialMerges(self, board):
         horizCnt = 0
         for r in range(len(board)):
@@ -269,5 +270,4 @@ class Expectimax():
             for r in range(len(col)-1):
                 if board[r][c] == board[r+1][c]:
                     vertCnt += 1
-        return horizCnt + vertCnt
-        return horizCnt
+        return horizCnt + vertCnt        
