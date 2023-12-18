@@ -502,7 +502,7 @@ def onMousePress(app, mouseX, mouseY):
             app.mtpBoard2 = mtpBoard2(False, True)
 
 def onStep(app):
-    app.stepsPerSecond = 100
+    app.stepsPerSecond = 1000
     if app.mode == 'classic':
         if app.classicBoard.gameOver():
             app.endLabel = 'GAME OVER'

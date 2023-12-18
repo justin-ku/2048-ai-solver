@@ -16,7 +16,7 @@ class AISolver:
     def __init__(self, board):
         self.board = board        
 
-    # minimax search with alpha-beta pruning
+    # minimax with alpha-beta pruning
     def minimax(self, board, depth=7, alpha=-np.inf, beta=np.inf, maxNode=True):
         if depth == 0:
             return None, self.evaluate(board)
@@ -56,7 +56,7 @@ class AISolver:
                     break
             return worstMove, minEval
 
-    
+    # expectimax
     def getNextMove(self, board):
         bestMove = None
         bestScore = -np.inf
@@ -102,10 +102,10 @@ class AISolver:
         return bestScore
 
     def calculateFinalScore(self, board):
-        wSmooth = 10
-        wEmpty = 1       
-        wMerge = 1
-        wMono = 1
+        wSmooth = 1
+        wEmpty = 0.3       
+        wMerge = 0.001
+        wMono = 0.05
         return (wSmooth * self.smoothness(board)        + \
                 wEmpty  * self.countEmptySquares(board) + \
                 wMerge  * self.getPotentialMerges(board)+ \
